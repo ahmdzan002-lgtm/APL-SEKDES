@@ -1,0 +1,50 @@
+{
+  "id": "./",
+  "name": "SIDA-JAMAAH: Sistem Informasi & Administrasi Sekretaris Desa",
+  "short_name": "SIDA-JAMAAH",
+  "description": "Aplikasi Sistem Informasi Database Jamaah, Kartu Keluarga, Mutasi, Absensi Kegiatan, Struktur Pengurus & Studio Cetak PDF (Offline-First di Perangkat).",
+  "lang": "id-ID",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#0f766e",
+  "categories": ["productivity", "utilities", "business"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
+

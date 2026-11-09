@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>SIDA-JAMAAH — Sistem Informasi Database &amp; Administrasi Sekretaris Desa</title>
+  <meta name="description" content="Aplikasi Sistem Informasi Database Jamaah, Kartu Keluarga, Mutasi, Absensi Kegiatan, Struktur Pengurus &amp; Studio Cetak PDF (100% Offline-First).">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SIDA-JAMAAH">
+  <meta name="application-name" content="SIDA-JAMAAH">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="locked">
+
+  <!-- ========================================================================
+       LAYAR LOGIN GOOGLE (wajib; seluruh data disembunyikan sebelum login)
+       ======================================================================== -->
+  <div class="login-screen" id="loginScreen" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <div class="login-card">
+      <div class="login-head-center">
+        <div class="login-logo" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h1 id="loginTitle">SIDA-JAMAAH</h1>
+        <p class="login-sub">Sistem Informasi Database &amp; Administrasi Sekretaris Desa</p>
+        <div class="offline-ready-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+          <span id="loginDataBadgeText">311 Data Jamaah Tersimpan di Perangkat (100% Offline)</span>
+        </div>
+      </div>
+
+      <div class="login-sep"></div>
+
+      <form id="formLocalLogin" onsubmit="event.preventDefault();">
+        <label class="form-label" style="text-align:center;display:block;margin-bottom:6px;">Pilih Peran Akses Anda:</label>
+        <div class="role-selector-grid">
+          <div class="role-option-card active" data-loginrole="admin">
+            <strong>Sekretaris</strong>
+            <span>Admin Utama (Akses Penuh)</span>
+          </div>
+          <div class="role-option-card" data-loginrole="pengurus">
+            <strong>Pengurus</strong>
+            <span>Kides, Kipok, KU, Dapukan</span>
+          </div>
+          <div class="role-option-card" data-loginrole="anggota">
+            <strong>Jamaah</strong>
+            <span>Lihat KK &amp; Absen Mandiri</span>
+          </div>
+        </div>
+
+        <div id="loginBoxAdmin" class="login-role-box">
+          <label class="form-label" for="loginAdminPin">PIN Keamanan Sekretaris (Admin)</label>
+          <input type="password" id="loginAdminPin" class="form-control" value="123456" placeholder="Masukkan PIN (bawaan: 123456)" autocomplete="current-password" style="text-align:center;font-weight:700;letter-spacing:3px;font-size:1rem;">
+          <p style="font-size:0.72rem;color:var(--text-muted);margin-top:6px;text-align:center;">PIN bawaan: <strong>123456</strong> (dapat diubah di menu Cadangan &amp; Keamanan).</p>
+        </div>
+
+        <div id="loginBoxPengurus" class="login-role-box" style="display:none;">
+          <label class="form-label" for="loginSelectPengurus">Pilih Nama &amp; Dapukan Pengurus</label>
+          <select id="loginSelectPengurus" class="form-control"></select>
+          <p style="font-size:0.72rem;color:var(--text-muted);margin-top:6px;">Dapat melihat database, mengisi absensi kegiatan, dan membuat laporan pengurus.</p>
+        </div>
+
+        <div id="loginBoxAnggota" class="login-role-box" style="display:none;">
+          <label class="form-label" for="loginSelectAnggota">Pilih Nama Jamaah / Keluarga</label>
+          <select id="loginSelectAnggota" class="form-control"></select>
+          <p style="font-size:0.72rem;color:var(--text-muted);margin-top:6px;">Dapat melihat rincian Kartu Keluarga (KK) dan mengisi presensi kehadiran mandiri.</p>
+        </div>
+
+        <div id="loginStatus" class="login-status" role="status" aria-live="polite"></div>
+
+        <button type="submit" class="btn btn-primary" id="btnLoginSubmit" style="width:100%;padding:12px;font-size:0.95rem;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Masuk ke Aplikasi
+        </button>
+      </form>
+
+      <div class="login-dual-actions">
+        <button type="button" class="btn btn-soft btn-sm" id="btnInstallPwaLogin" style="width:100%;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Pasang di HP (PWA)
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" id="btnRestoreOnLogin" style="width:100%;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+          Pulihkan File WA (.json)
+        </button>
+      </div>
+      <p class="login-note">Data tersimpan aman di memori perangkat ini (IndexedDB) &amp; bekerja 100% tanpa internet.</p>
+    </div>
+  </div>
+  <div class="preview-banner" id="previewBanner"></div>
+
+  <!-- ========================================================================
+       TOP HEADER & NAVIGATION BAR
+       ======================================================================== -->
+  <header class="top-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <div class="brand-logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 id="headerTitleDesa">SIDA-JAMAAH DESA</h1>
+          <p id="headerSubDesa">Sistem Database & Administrasi Sekretaris Desa</p>
+        </div>
+      </div>
+
+      <nav class="desktop-nav" aria-label="Menu Utama">
+        <button type="button" class="nav-btn active" data-module="database">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          Database
+        </button>
+        <button type="button" class="nav-btn" data-module="absensi">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Absensi
+        </button>
+        <button type="button" class="nav-btn" data-module="pengurus">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5M5 17v-5h14v5"/></svg>
+          Struktur Pengurus
+        </button>
+      </nav>
+
+      <div class="header-actions">
+        <div class="status-pill" id="connectionBadge" title="Status Sinkronisasi Database">
+          <div class="status-dot"></div>
+          <span id="connectionText">311 Data Siap</span>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" id="btnToggleTheme" title="Ganti Tema Terang / Gelap (Dark Mode)">
+          <svg id="iconThemeMoon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="iconThemeSun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <span id="lblThemeMode">Gelap</span>
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" id="btnRefreshData" title="Sinkronisasi Ulang Database">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Refresh
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" id="btnToggleOverflow" title="Menu Lainnya & Pengaturan">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          Lainnya
+        </button>
+
+        
+        <button type="button" class="profile-chip" id="btnProfile" aria-haspopup="true" aria-expanded="false" title="Profil Pengguna">
+          <span class="avatar" id="navAvatar"></span>
+          <span class="profile-chip-text">
+            <strong id="navUserName">-</strong>
+            <span class="role-badge" id="navUserRole">-</span>
+          </span>
+        </button>
+        <div class="profile-menu" id="profileMenu">
+          <div class="profile-menu-head">
+            <span class="avatar avatar-lg" id="menuAvatar"></span>
+            <div>
+              <div class="profile-name" id="menuUserName"></div>
+              <div class="profile-email" id="menuUserEmail"></div>
+              <span class="role-badge" id="menuUserRole"></span>
+            </div>
+          </div>
+          <div class="profile-menu-meta" id="menuSessionInfo"></div>
+          <button type="button" class="overflow-item" id="btnOpenProfile">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Lihat Profil Lengkap
+          </button>
+          <button type="button" class="overflow-item" id="btnLogout" style="color:var(--danger);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Keluar (Logout)
+          </button>
+        </div>
+
+        <div class="overflow-menu" id="overflowMenu">
+                    <button type="button" class="overflow-item" id="menuBackupWa" data-roles="admin,pengurus" style="color:#15803d;font-weight:700;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            Kirim Cadangan ke WhatsApp
+          </button>
+          <button type="button" class="overflow-item" id="menuDownloadBackup" data-roles="admin,pengurus">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download File Cadangan (.json)
+          </button>
+          <button type="button" class="overflow-item" id="menuRestoreBackup" data-roles="admin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Pulihkan dari File Cadangan (.json)
+          </button>
+          <button type="button" class="overflow-item" id="menuInstallPwa">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Pasang / Instal di HP (PWA)
+          </button>
+          <button type="button" class="overflow-item" id="menuOpenImport" data-roles="admin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import File CSV / Excel
+          </button>
+          <button type="button" class="overflow-item" id="menuExportCsv" data-roles="admin,pengurus">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Backup CSV
+          </button>
+          <button type="button" class="overflow-item" id="menuOpenSettings" data-roles="admin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Pengaturan Kop &amp; Pejabat Desa
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN CONTENT AREA
+       ======================================================================== -->
+  <main class="main-container">
+
+    <!-- SUB-MENU MODUL DATABASE (menggabungkan seluruh fitur sekretaris) -->
+    <div class="subtab-bar" id="subTabBar" aria-label="Sub menu Database">
+      <button type="button" class="nav-btn active" data-nav="dashboard">Dashboard</button>
+      <button type="button" class="nav-btn" data-nav="database">Data Jamaah &amp; KK</button>
+      <button type="button" class="nav-btn" data-nav="mutasi" data-roles="admin,pengurus">Masuk &amp; Keluar</button>
+      <button type="button" class="nav-btn" data-nav="pdf" data-roles="admin,pengurus">Studio PDF &amp; Print</button>
+      <button type="button" class="nav-btn" data-nav="keamanan" data-roles="admin">Cadangan &amp; Keamanan</button>
+    </div>
+
+
+    <!-- ======================================================================
+         MENU 1: DASHBOARD EKSEKUTIF SEKRETARIS DESA
+         ====================================================================== -->
+    <section id="sec-dashboard" class="page-section active">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Dashboard Statistik Jamaah Se-Desa</h2>
+          <p>Ringkasan real-time populasi jamaah aktif, kepala keluarga (KK), jenjang usia, dan mutasi keluar-masuk.</p>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btnDashAddJamaah" data-roles="admin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Jamaah
+          </button>
+          <button type="button" class="btn btn-soft" id="btnDashGoPdf" data-roles="admin,pengurus">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Buat PDF Custom
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Kartu Metrik Utama (Grid 2-4 Kolom) -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">TOTAL JAMAAH AKTIF</span>
+            <div class="metric-icon" style="background:#f0fdfa;color:#0f766e;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+          </div>
+          <div class="metric-value" id="statTotalJamaah">311</div>
+          <div class="metric-sub" id="statGenderBreakdown">Laki-laki: 0 • Perempuan: 0</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">KEPALA KELUARGA (KK)</span>
+            <div class="metric-icon" style="background:#eff6ff;color:#2563eb;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+          </div>
+          <div class="metric-value" id="statTotalKK">95</div>
+          <div class="metric-sub" id="statAvgKK">Rata-rata 3.3 jiwa per KK</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">TENAGA MUBALIGH (MT/MS)</span>
+            <div class="metric-icon" style="background:#fef3c7;color:#d97706;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
+          </div>
+          <div class="metric-value" id="statTotalMubaligh">0</div>
+          <div class="metric-sub" id="statSubMubaligh">MT: 0 • MS: 0 • Pengurus: 0</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">MUTASI MASUK &amp; KELUAR</span>
+            <div class="metric-icon" style="background:#ecfdf5;color:#059669;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+          </div>
+          <div class="metric-value" id="statTotalMutasi">0</div>
+          <div class="metric-sub" id="statSubMutasi">Masuk: 0 • Keluar/Wafat: 0</div>
+        </div>
+      </div>
+
+      <!-- 4 Kartu Kelompok Desa -->
+      <div class="kelompok-grid" id="dashboardKelompokGrid"></div>
+
+      <!-- Distribusi Kategori Usia & Demografi Lainnya -->
+      <div class="dashboard-panels">
+        <div class="surface-card">
+          <div class="card-title-bar">
+            <h3>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2.2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Matriks Kategori Usia per Kelompok (Klik Baris untuk Filter)
+            </h3>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table" id="tableMatrixUsia">
+              <thead>
+                <tr>
+                  <th>Jenjang Kategori Usia</th>
+                  <th>Al Awwabin 1</th>
+                  <th>Al Awwabin 2</th>
+                  <th>Kencana 1</th>
+                  <th>Kencana 2</th>
+                  <th>Total Desa</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyMatrixUsia"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="surface-card">
+          <div class="card-title-bar">
+            <h3>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Profil Ekonomi, Golongan Darah &amp; Pendidikan
+            </h3>
+          </div>
+          <div id="dashboardSideStats"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         MENU 2: DATABASE JAMAAH & KELUARGA (PENCARIAN, FILTER, CRUD)
+         ====================================================================== -->
+    <section id="sec-database" class="page-section">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Database Master Jamaah &amp; Kartu Keluarga (KK)</h2>
+          <p>Kelola seluruh data jamaah se-desa, filter multi-kriteria, lihat anggota keluarga per KK, atau import/export CSV.</p>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btnOpenAddModal" data-roles="admin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Jamaah
+          </button>
+          <button type="button" class="btn btn-outline" id="btnOpenImportModal" data-roles="admin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import CSV
+          </button>
+          <button type="button" class="btn btn-outline" id="btnExportFilteredCsv">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <button type="button" class="btn btn-soft" id="btnPrintFilteredToPdf" data-roles="admin,pengurus">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Cetak Hasil Filter ke PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Multi-Dimensi -->
+      <div class="filter-card">
+        <div class="filter-grid">
+          <div class="form-group">
+            <label class="form-label" for="fSearch" style="display:flex;justify-content:space-between;align-items:center;"><span>Pencarian Cepat (Nama / KK / Tempat Lahir / Dapukan / HP)</span><span class="kbd-hint">Ctrl + K</span></label>
+            <input type="text" id="fSearch" class="form-control" placeholder="Ketik nama jamaah, kode KK (misal AA1-KK01), dapukan...">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fKelompok">Kelompok</label>
+            <select id="fKelompok" class="form-control">
+              <option value="">Semua Kelompok (4)</option>
+              <option value="Al Awwabin 1">Al Awwabin 1</option>
+              <option value="Al Awwabin 2">Al Awwabin 2</option>
+              <option value="Kencana 1">Kencana 1</option>
+              <option value="Kencana 2">Kencana 2</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fKategoriUsia">Kategori Usia</label>
+            <select id="fKategoriUsia" class="form-control">
+              <option value="">Semua Jenjang Usia</option>
+              <option value="BALITA">BALITA (0-4 Thn)</option>
+              <option value="CABERAWIT">CABERAWIT (5-12 Thn)</option>
+              <option value="REMAJA / MUDA-MUDI">REMAJA / MUDA-MUDI (13-18 Thn)</option>
+              <option value="PRA NIKAH">PRA NIKAH (19-22 Thn)</option>
+              <option value="USIA NIKAH">USIA NIKAH (23+ Belum Nikah)</option>
+              <option value="DEWASA">DEWASA</option>
+              <option value="LANSIA">LANSIA (60+ Thn)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fJK">Jenis Kelamin</label>
+            <select id="fJK" class="form-control">
+              <option value="">Semua (L &amp; P)</option>
+              <option value="L">Laki-laki (L)</option>
+              <option value="P">Perempuan (P)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fStatusKK">Peran di KK</label>
+            <select id="fStatusKK" class="form-control">
+              <option value="">Semua Anggota</option>
+              <option value="Kepala Keluarga">Khusus Kepala Keluarga (KK)</option>
+              <option value="Anggota">Anggota Keluarga</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fStatusAktif">Status Jamaah</label>
+            <select id="fStatusAktif" class="form-control">
+              <option value="Aktif">Aktif</option>
+              <option value="SEMUA">Semua Status</option>
+              <option value="Pindah Keluar">Pindah Keluar</option>
+              <option value="Wafat">Wafat</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-grid-secondary">
+          <div class="form-group">
+            <label class="form-label" for="fStatusNikah">Status Pernikahan</label>
+            <select id="fStatusNikah" class="form-control">
+              <option value="">Semua</option>
+              <option value="Menikah">Menikah</option>
+              <option value="Belum">Belum Menikah</option>
+              <option value="Janda">Janda</option>
+              <option value="Duda">Duda</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fMubaligh">Kemubalighan</label>
+            <select id="fMubaligh" class="form-control">
+              <option value="">Semua</option>
+              <option value="MS">Mubaligh Setempat (MS)</option>
+              <option value="MT">Mubaligh Tugasan (MT)</option>
+              <option value="ADA_MUBALIGH">Semua Mubaligh (MT &amp; MS)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fEkonomi">Kategori Ekonomi</label>
+            <select id="fEkonomi" class="form-control">
+              <option value="">Semua</option>
+              <option value="Aghnia">Aghnia</option>
+              <option value="Dhuafa">Dhuafa</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fGoldar">Golongan Darah</label>
+            <select id="fGoldar" class="form-control">
+              <option value="">Semua Goldar</option>
+              <option value="O">Golongan O</option>
+              <option value="A">Golongan A</option>
+              <option value="B">Golongan B</option>
+              <option value="AB">Golongan AB</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex-direction:row;align-items:center;gap:8px;">
+            <button type="button" class="btn btn-outline" id="btnResetFilter" style="width:100%;">
+              Reset Filter
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deretan Chip Filter 1-Sentuhan (Quick-Filter Pills) & Sakelar Mode Tabel/Kartu -->
+      <div class="interactive-toolbar">
+        <div class="quick-chips-scroll" id="quickFilterBar" role="tablist" aria-label="Filter Cepat 1 Sentuhan">
+          <button type="button" class="q-chip active" data-qf="all">Semua Jamaah</button>
+          <button type="button" class="q-chip" data-qf="kel:Al Awwabin 1">Al Awwabin 1</button>
+          <button type="button" class="q-chip" data-qf="kel:Al Awwabin 2">Al Awwabin 2</button>
+          <button type="button" class="q-chip" data-qf="kel:Kencana 1">Kencana 1</button>
+          <button type="button" class="q-chip" data-qf="kel:Kencana 2">Kencana 2</button>
+          <button type="button" class="q-chip" data-qf="kk:Kepala Keluarga">Kepala KK</button>
+          <button type="button" class="q-chip" data-qf="usia:BALITA">Balita</button>
+          <button type="button" class="q-chip" data-qf="usia:CABERAWIT">Caberawit</button>
+          <button type="button" class="q-chip" data-qf="usia:REMAJA / MUDA-MUDI">Remaja</button>
+          <button type="button" class="q-chip" data-qf="usia:PRA NIKAH">Pra Nikah</button>
+          <button type="button" class="q-chip" data-qf="usia:USIA NIKAH">Usia Nikah</button>
+          <button type="button" class="q-chip" data-qf="usia:DEWASA">Dewasa</button>
+          <button type="button" class="q-chip" data-qf="usia:LANSIA">Lansia</button>
+          <button type="button" class="q-chip" data-qf="mub:ADA_MUBALIGH">Mubaligh (MT/MS)</button>
+        </div>
+
+        <div class="view-mode-switch" role="group" aria-label="Pilih Tampilan Tabel atau Kartu">
+          <button type="button" class="view-switch-btn active" id="btnViewTable" data-viewmode="table" title="Tampilan Tabel Lengkap (Cocok untuk Laptop)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></svg>
+            Tabel
+          </button>
+          <button type="button" class="view-switch-btn" id="btnViewCards" data-viewmode="cards" title="Tampilan Kartu Profil Interaktif (Sangat Nyaman di HP & Laptop)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+            Kartu Interaktif
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabel & Kartu Master Jamaah -->
+      <div class="table-wrapper">
+        <div class="table-scroll" id="jamaahTableScroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:42px;">No</th>
+                <th>Kode KK &amp; Kelompok</th>
+                <th>Nama Lengkap &amp; Peran</th>
+                <th>L/P &amp; Kelahiran</th>
+                <th>Usia &amp; Kategori</th>
+                <th>Pendidikan &amp; Lembaga</th>
+                <th>Dapukan / MT-MS / Ekonomi</th>
+                <th>Goldar &amp; No HP</th>
+                <th>Status</th>
+                <th style="text-align:right;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyJamaah"></tbody>
+          </table>
+        </div>
+        <div id="jamaahCardsGrid" class="jamaah-cards-grid" style="display:none;"></div>
+        <div class="pagination-bar">
+          <div id="tablePaginationInfo">Menampilkan 0 dari 0 data jamaah</div>
+          <div class="btn-row">
+            <label for="pageSizeSelect" style="font-size:0.78rem;font-weight:600;">Baris:</label>
+            <select id="pageSizeSelect" class="form-control" style="width:auto;padding:4px 8px;">
+              <option value="25">25</option>
+              <option value="50" selected>50</option>
+              <option value="100">100</option>
+              <option value="500">Semua (311+)</option>
+            </select>
+            <button type="button" class="btn btn-outline btn-sm" id="btnPrevPage">Sebelumnya</button>
+            <span id="pageIndicator" style="font-weight:700;padding:0 6px;">Hal 1 / 1</span>
+            <button type="button" class="btn btn-outline btn-sm" id="btnNextPage">Berikutnya</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         MENU 3: JAMAAH MASUK & KELUAR (MUTASI KEPENDUDUKAN DESA)
+         ====================================================================== -->
+    <section id="sec-mutasi" class="page-section">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Buku Pencatatan Jamaah Masuk &amp; Keluar (Mutasi)</h2>
+          <p>Catat jamaah baru (kelahiran / pindah datang) dan jamaah keluar (pindah domisili / wafat) secara terstruktur.</p>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btnOpenMutasiMasuk">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            + Catat Jamaah Masuk
+          </button>
+          <button type="button" class="btn btn-danger-soft" id="btnOpenMutasiKeluar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            + Catat Jamaah Keluar / Wafat
+          </button>
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">TOTAL RIWAYAT MUTASI</span>
+          </div>
+          <div class="metric-value" id="mutStatTotal">0</div>
+          <div class="metric-sub">Seluruh catatan masuk &amp; keluar</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">JAMAAH MASUK (DATANG / LAHIR)</span>
+          </div>
+          <div class="metric-value" style="color:var(--success);" id="mutStatMasuk">0</div>
+          <div class="metric-sub">Otomatis terdaftar Aktif di Database</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">JAMAAH PINDAH KELUAR</span>
+          </div>
+          <div class="metric-value" style="color:var(--warning);" id="mutStatKeluar">0</div>
+          <div class="metric-sub">Status di Database: Pindah Keluar</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">JAMAAH WAFAT</span>
+          </div>
+          <div class="metric-value" style="color:var(--danger);" id="mutStatWafat">0</div>
+          <div class="metric-sub">Status di Database: Wafat</div>
+        </div>
+      </div>
+
+      <div class="filter-card">
+        <div class="filter-grid" style="grid-template-columns: 2fr 1fr 1fr auto;">
+          <div class="form-group">
+            <label class="form-label" for="fMutasiSearch">Cari Riwayat Mutasi</label>
+            <input type="text" id="fMutasiSearch" class="form-control" placeholder="Cari nama jamaah, ID mutasi, atau keterangan...">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fMutasiJenis">Jenis Mutasi</label>
+            <select id="fMutasiJenis" class="form-control">
+              <option value="">Semua (Masuk &amp; Keluar)</option>
+              <option value="MASUK">MASUK (Lahir / Pindah Datang)</option>
+              <option value="KELUAR">KELUAR (Pindah / Wafat)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fMutasiKelompok">Kelompok</label>
+            <select id="fMutasiKelompok" class="form-control">
+              <option value="">Semua Kelompok</option>
+              <option value="Al Awwabin 1">Al Awwabin 1</option>
+              <option value="Al Awwabin 2">Al Awwabin 2</option>
+              <option value="Kencana 1">Kencana 1</option>
+              <option value="Kencana 2">Kencana 2</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <button type="button" class="btn btn-outline" id="btnPrintMutasiPdf">Cetak Log Mutasi</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID Mutasi</th>
+                <th>Tanggal</th>
+                <th>Jenis &amp; Kategori</th>
+                <th>ID &amp; Nama Jamaah</th>
+                <th>Kelompok</th>
+                <th>Keterangan Asal / Tujuan / Alasan</th>
+                <th>Dicatat Oleh</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyMutasi"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         MENU 4: STUDIO CUSTOM PDF & PRINT (REKAP TABEL + KK & BIODATA)
+         ====================================================================== -->
+    <section id="sec-pdf" class="page-section">
+      <div class="section-header no-print">
+        <div class="section-title">
+          <h2>Studio Cetak PDF Kustom &amp; Kartu Keluarga / Biodata</h2>
+          <p>Pilih jenis cetakan, saring data jamaah atau pilih manual, tentukan kolom yang tampil, lalu klik Cetak / Simpan PDF.</p>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-outline" id="btnPdfOpenSettings">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Atur Kop Surat &amp; Pejabat
+          </button>
+          <button type="button" class="btn btn-primary" id="btnTriggerPrint">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Cetak / Simpan PDF Sekarang
+          </button>
+        </div>
+      </div>
+
+      <div class="pdf-studio-layout">
+        <!-- Panel Kiri: Konfigurasi PDF Kustom -->
+        <aside class="pdf-config-panel no-print">
+          <div class="mode-switch">
+            <button type="button" class="mode-btn active" id="tabModeTable" data-pdfmode="table">
+              1. Rekap Tabel Kustom
+            </button>
+            <button type="button" class="mode-btn" id="tabModeCard" data-pdfmode="card">
+              2. Kartu KK &amp; Biodata
+            </button>
+          </div>
+
+          <!-- Pengaturan Umum Dokumen -->
+          <div class="form-group" style="margin-bottom:10px;">
+            <label class="form-label" for="pdfTitle">Judul Dokumen Laporan PDF</label>
+            <input type="text" id="pdfTitle" class="form-control" value="DATA REKAPITULASI JAMAAH DESA">
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" for="pdfSubtitle">Subjudul / Keterangan Laporan</label>
+            <input type="text" id="pdfSubtitle" class="form-control" value="Rekapitulasi Resmi Sekretariat Desa">
+          </div>
+
+          <div class="form-grid-2" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="pdfOrientation">Orientasi Kertas</label>
+              <select id="pdfOrientation" class="form-control">
+                <option value="portrait">Tegak (Portrait)</option>
+                <option value="landscape" selected>Mendatar (Landscape)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pdfPaperSize">Ukuran Kertas</label>
+              <select id="pdfPaperSize" class="form-control">
+                <option value="A4">Kertas A4</option>
+                <option value="F4">Kertas F4 / Folio</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- KONFIGURASI MODE 1: REKAP TABEL KUSTOM -->
+          <div id="pdfConfigTablePanel">
+            <div class="form-group" style="margin-bottom:10px;">
+              <label class="form-label" for="pdfSourceMode">Sumber Data Jamaah yang Dicetak</label>
+              <select id="pdfSourceMode" class="form-control">
+                <option value="filter">Berdasarkan Filter Kriteria di Bawah</option>
+                <option value="manual">Pilih / Centang Manual Nama Jamaah</option>
+              </select>
+            </div>
+
+            <div id="pdfFilterCriteriaBox">
+              <div class="form-grid-2" style="margin-bottom:10px;">
+                <div class="form-group">
+                  <label class="form-label" for="pdfKelompok">Filter Kelompok</label>
+                  <select id="pdfKelompok" class="form-control">
+                    <option value="">Semua Kelompok</option>
+                    <option value="Al Awwabin 1">Al Awwabin 1</option>
+                    <option value="Al Awwabin 2">Al Awwabin 2</option>
+                    <option value="Kencana 1">Kencana 1</option>
+                    <option value="Kencana 2">Kencana 2</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="pdfKatUsia">Filter Kategori Usia</label>
+                  <select id="pdfKatUsia" class="form-control">
+                    <option value="">Semua Usia</option>
+                    <option value="BALITA">BALITA</option>
+                    <option value="CABERAWIT">CABERAWIT</option>
+                    <option value="REMAJA / MUDA-MUDI">REMAJA / MUDA-MUDI</option>
+                    <option value="PRA NIKAH">PRA NIKAH</option>
+                    <option value="USIA NIKAH">USIA NIKAH</option>
+                    <option value="DEWASA">DEWASA</option>
+                    <option value="LANSIA">LANSIA</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-grid-2" style="margin-bottom:10px;">
+                <div class="form-group">
+                  <label class="form-label" for="pdfJK">Jenis Kelamin</label>
+                  <select id="pdfJK" class="form-control">
+                    <option value="">Semua (L &amp; P)</option>
+                    <option value="L">Laki-laki (L)</option>
+                    <option value="P">Perempuan (P)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="pdfStatusKK">Peran di KK</label>
+                  <select id="pdfStatusKK" class="form-control">
+                    <option value="">Semua Anggota</option>
+                    <option value="Kepala Keluarga">Khusus Kepala Keluarga</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-grid-2" style="margin-bottom:12px;">
+                <div class="form-group">
+                  <label class="form-label" for="pdfMubaligh">Kemubalighan</label>
+                  <select id="pdfMubaligh" class="form-control">
+                    <option value="">Semua</option>
+                    <option value="MS">MS</option>
+                    <option value="MT">MT</option>
+                    <option value="ADA_MUBALIGH">Semua MT &amp; MS</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="pdfEkonomi">Ekonomi</label>
+                  <select id="pdfEkonomi" class="form-control">
+                    <option value="">Semua</option>
+                    <option value="Aghnia">Aghnia</option>
+                    <option value="Dhuafa">Dhuafa</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pemilih Manual Baris Jamaah -->
+            <div id="pdfManualSelectBox" style="display:none;margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span class="form-label">Centang Jamaah (<span id="manualSelectedCount">0</span> dipilih)</span>
+                <div style="display:flex;gap:4px;">
+                  <button type="button" class="btn btn-outline btn-sm" id="btnSelectAllManual">Pilih Semua</button>
+                  <button type="button" class="btn btn-outline btn-sm" id="btnClearAllManual">Kosongkan</button>
+                </div>
+              </div>
+              <input type="text" id="pdfManualSearch" class="form-control" placeholder="Cari nama atau kelompok..." style="margin-bottom:6px;">
+              <div class="col-check-grid" id="pdfManualListContainer" style="grid-template-columns:1fr;max-height:180px;"></div>
+            </div>
+
+            <!-- Checklist Kolom yang Ingin Dicetak -->
+            <div class="form-group" style="margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <label class="form-label">Pilih Kolom Tabel PDF</label>
+                <div style="display:flex;gap:6px;">
+                  <button type="button" class="btn btn-outline btn-sm" id="btnPresetRingkas">Ringkas</button>
+                  <button type="button" class="btn btn-outline btn-sm" id="btnPresetAbsensi">Absensi</button>
+                  <button type="button" class="btn btn-outline btn-sm" id="btnPresetLengkap">Lengkap</button>
+                </div>
+              </div>
+              <div class="col-check-grid" id="pdfColumnsChecklist"></div>
+            </div>
+          </div>
+
+          <!-- KONFIGURASI MODE 2: KARTU KELUARGA (KK) & BIODATA PERORANGAN -->
+          <div id="pdfConfigCardPanel" style="display:none;">
+            <div class="form-group" style="margin-bottom:10px;">
+              <label class="form-label" for="pdfCardSubmode">Jenis Dokumen Biodata / Keluarga</label>
+              <select id="pdfCardSubmode" class="form-control">
+                <option value="kk">Lembar Kartu Keluarga Jamaah (Daftar 1 KK Utuh)</option>
+                <option value="biodata">Lembar Biodata Perorangan Lengkap</option>
+                <option value="kk_kelompok">Cetak Semua KK dalam 1 Kelompok</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="boxSelectSingleKK" style="margin-bottom:12px;">
+              <label class="form-label" for="pdfSelectKK">Pilih Kepala Keluarga (95 KK)</label>
+              <select id="pdfSelectKK" class="form-control"></select>
+            </div>
+
+            <div class="form-group" id="boxSelectSinglePerson" style="display:none;margin-bottom:12px;">
+              <label class="form-label" for="pdfSelectPerson">Pilih Nama Jamaah (311 Jiwa)</label>
+              <select id="pdfSelectPerson" class="form-control"></select>
+            </div>
+
+            <div class="form-group" id="boxSelectGroupKK" style="display:none;margin-bottom:12px;">
+              <label class="form-label" for="pdfSelectKKGroup">Pilih Kelompok untuk Cetak Seluruh KK</label>
+              <select id="pdfSelectKKGroup" class="form-control">
+                <option value="Al Awwabin 1">Al Awwabin 1 (23 KK)</option>
+                <option value="Al Awwabin 2">Al Awwabin 2 (18 KK)</option>
+                <option value="Kencana 1">Kencana 1 (28 KK)</option>
+                <option value="Kencana 2">Kencana 2 (26 KK)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-color);">
+            <label class="col-check-item">
+              <input type="checkbox" id="chkShowKop" checked> Tampilkan Kop Surat Resmi Desa
+            </label>
+            <label class="col-check-item">
+              <input type="checkbox" id="chkShowSummary" checked> Tampilkan Ringkasan Statistik di Atas/Bawah
+            </label>
+            <label class="col-check-item">
+              <input type="checkbox" id="chkShowTTD" checked> Tampilkan Kolom Tanda Tangan Ketua &amp; Sekretaris
+            </label>
+            <button type="button" class="btn btn-primary" id="btnTriggerPrintBottom" style="width:100%;margin-top:6px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Cetak / Download PDF
+            </button>
+          </div>
+        </aside>
+
+        <!-- Panel Kanan: Live Preview Kertas Cetak -->
+        <div class="pdf-preview-container">
+          <div class="print-paper landscape" id="printPaperCanvas"></div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ======================================================================
+         MENU 2: ABSENSI (terhubung ke Database Jamaah lewat ID Jamaah)
+         ====================================================================== -->
+    <section id="sec-absensi" class="page-section">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Absensi Kehadiran Jamaah</h2>
+          <p>Kehadiran tersimpan per kegiatan dan terhubung ke Database Jamaah (ID Jamaah). Pilih kegiatan, lalu tandai kehadiran.</p>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btnNewKegiatan" data-roles="admin,pengurus">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Kegiatan Baru
+          </button>
+        </div>
+      </div>
+
+      <div class="subtab-bar">
+        <button type="button" class="nav-btn active" data-abstab="presensi">Presensi Kegiatan</button>
+        <button type="button" class="nav-btn" data-abstab="rekap">Rekap Kehadiran</button>
+      </div>
+
+      <div id="absPanePresensi">
+        <div class="kg-list" id="kgList"></div>
+
+        <div class="surface-card" id="absSheetCard" style="margin-top:16px;display:none;">
+          <div class="card-title-bar">
+            <h3 id="absSheetTitle">Lembar Presensi</h3>
+            <div class="btn-row" id="absSheetActions">
+              <button type="button" class="btn btn-outline btn-sm" id="btnAbsAllHadir">Tandai Semua Hadir</button>
+              <button type="button" class="btn btn-outline btn-sm" id="btnEditKegiatan" data-roles="admin,pengurus">Ubah Kegiatan</button>
+              <button type="button" class="btn btn-danger-soft btn-sm" id="btnDeleteKegiatan" data-roles="admin">Hapus Kegiatan</button>
+              <button type="button" class="btn btn-primary btn-sm" id="btnSaveAbsensi" data-roles="admin,pengurus">Simpan Kehadiran</button>
+            </div>
+          </div>
+          <div id="absSelfBox" style="display:none;margin-bottom:12px;"></div>
+          <div class="filter-grid" style="grid-template-columns:2fr 1fr;margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="absSearch">Cari Nama Jamaah</label>
+              <input type="text" id="absSearch" class="form-control" placeholder="Ketik nama atau kode KK...">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="absKelompokFilter">Kelompok</label>
+              <select id="absKelompokFilter" class="form-control">
+                <option value="">Semua Kelompok</option>
+                <option value="Al Awwabin 1">Al Awwabin 1</option>
+                <option value="Al Awwabin 2">Al Awwabin 2</option>
+                <option value="Kencana 1">Kencana 1</option>
+                <option value="Kencana 2">Kencana 2</option>
+              </select>
+            </div>
+          </div>
+          <div class="pill-row" id="absSummary"></div>
+          <div class="table-wrapper">
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr><th style="width:42px;">No</th><th>Nama Jamaah</th><th>Kelompok &amp; KK</th><th>Kehadiran</th><th>Catatan</th></tr>
+                </thead>
+                <tbody id="tbodyAbsensi"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="absPaneRekap" style="display:none;">
+        <div class="filter-card">
+          <div class="filter-grid" style="grid-template-columns:2fr 1fr auto;">
+            <div class="form-group">
+              <label class="form-label" for="rekapSearch">Cari Nama Jamaah</label>
+              <input type="text" id="rekapSearch" class="form-control" placeholder="Ketik nama jamaah...">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="rekapKelompok">Kelompok</label>
+              <select id="rekapKelompok" class="form-control">
+                <option value="">Semua Kelompok</option>
+                <option value="Al Awwabin 1">Al Awwabin 1</option>
+                <option value="Al Awwabin 2">Al Awwabin 2</option>
+                <option value="Kencana 1">Kencana 1</option>
+                <option value="Kencana 2">Kencana 2</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <button type="button" class="btn btn-soft" id="btnPrintRekapAbsensi" data-roles="admin,pengurus">Cetak Rekap ke PDF</button>
+            </div>
+          </div>
+        </div>
+        <div class="pill-row" id="rekapSummary"></div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr><th>No</th><th>Nama Jamaah</th><th>Kelompok</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>Alpa</th><th>Belum Tercatat</th><th>% Hadir</th></tr>
+              </thead>
+              <tbody id="tbodyRekapAbsensi"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         MENU 3: STRUKTUR PENGURUS (susunan, tupoksi, laporan)
+         ====================================================================== -->
+    <section id="sec-pengurus" class="page-section">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Struktur Pengurus, Tupoksi &amp; Laporan</h2>
+          <p>Susunan pengurus (terhubung ke Database Jamaah), tugas pokok &amp; fungsi, serta laporan masing-masing pengurus.</p>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btnAddPengurus" data-roles="admin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Pengurus
+          </button>
+          <button type="button" class="btn btn-soft" id="btnPrintStruktur" data-roles="admin,pengurus">Cetak Struktur ke PDF</button>
+        </div>
+      </div>
+
+      <div class="subtab-bar">
+        <button type="button" class="nav-btn active" data-pengtab="struktur">Struktur &amp; Tupoksi</button>
+        <button type="button" class="nav-btn" data-pengtab="laporan" data-roles="admin,pengurus">Laporan Pengurus</button>
+      </div>
+
+      <div id="pengPaneStruktur">
+        <div class="filter-card">
+          <div class="filter-grid" style="grid-template-columns:2fr 1fr;">
+            <div class="form-group">
+              <label class="form-label" for="pengSearch">Cari Jabatan / Nama</label>
+              <input type="text" id="pengSearch" class="form-control" placeholder="Ketik jabatan atau nama pengurus...">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pengKelompok">Kelompok</label>
+              <select id="pengKelompok" class="form-control">
+                <option value="">Semua Kelompok</option>
+                <option value="Al Awwabin 1">Al Awwabin 1</option>
+                <option value="Al Awwabin 2">Al Awwabin 2</option>
+                <option value="Kencana 1">Kencana 1</option>
+                <option value="Kencana 2">Kencana 2</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr><th style="width:42px;">No</th><th>Jabatan</th><th>Nama &amp; Kelompok</th><th>Tugas Pokok &amp; Fungsi (Tupoksi)</th><th>Status</th><th style="text-align:right;">Aksi</th></tr>
+              </thead>
+              <tbody id="tbodyPengurus"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="pengPaneLaporan" style="display:none;">
+        <div class="btn-row" style="margin-bottom:12px;">
+          <button type="button" class="btn btn-primary" id="btnNewLaporan">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Buat Laporan
+          </button>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr><th>Tanggal</th><th>Pengurus &amp; Jabatan</th><th>Periode</th><th>Judul Laporan</th><th>Status</th><th style="text-align:right;">Aksi</th></tr>
+              </thead>
+              <tbody id="tbodyLaporan"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         KEAMANAN & AUDIT (khusus Admin): hak akses pengguna + jejak aktivitas
+         ====================================================================== -->
+    <section id="sec-keamanan" class="page-section">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Cadangan Database (WhatsApp / File) &amp; Keamanan Perangkat</h2>
+          <p>Simpan cadangan database ke WhatsApp/HP Anda untuk dibagikan ke pengurus lain, atur PIN Sekretaris, dan pantau riwayat perubahan data.</p>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-wa" id="btnBackupShareWa">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            Kirim Cadangan ke WhatsApp
+          </button>
+          <button type="button" class="btn btn-outline" id="btnReloadSecurity">Muat Ulang</button>
+        </div>
+      </div>
+
+      <!-- KARTU UTAMA: CADANGKAN & PULIHKAN DATABASE (WHATSAPP / FILE JSON) -->
+      <div class="backup-hero-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h3 style="font-size:1rem;font-weight:800;color:var(--primary);margin-bottom:4px;">Pusat Cadangan &amp; Sinkronisasi Antar-HP (Backup &amp; Restore)</h3>
+            <p style="font-size:0.82rem;color:var(--text-secondary);max-width:740px;">
+              Karena database disimpan secara mandiri di memori perangkat masing-masing (<strong>IndexedDB Offline</strong>), gunakan tombol di bawah ini untuk <strong>mengunduh atau mengirim berkas cadangan (.json) lewat WhatsApp</strong> ke pengurus lain atau sebagai arsip cadangan aman.
+            </p>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <label for="selRestoreMode" style="font-size:0.76rem;font-weight:700;color:var(--text-secondary);">Mode Pulihkan:</label>
+            <select id="selRestoreMode" class="form-control" style="width:auto;padding:6px 10px;font-size:0.78rem;">
+              <option value="replace">Ganti Seluruh Data (Disarankan)</option>
+              <option value="merge">Gabungkan dengan Data Saat Ini</option>
+            </select>
+          </div>
+        </div>
+
+        <input type="file" id="inpRestoreJsonFile" accept=".json,application/json" style="display:none;">
+
+        <div class="backup-action-grid">
+          <button type="button" class="btn btn-wa" id="btnBackupDownload">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            1. Download File Cadangan (.json)
+          </button>
+          <button type="button" class="btn btn-primary" id="btnBackupRestore">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            2. Pulihkan dari File Cadangan (.json)
+          </button>
+          <button type="button" class="btn btn-danger-soft" id="btnResetDefaultDb">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Reset ke 311 Data Awal
+          </button>
+        </div>
+      </div>
+
+      <!-- PENGATURAN PIN SEKRETARIS -->
+      <div class="surface-card" style="margin-bottom:16px;">
+        <div class="card-title-bar">
+          <h3>Keamanan PIN Sekretaris (Admin)</h3>
+        </div>
+        <form id="formChangePin" onsubmit="event.preventDefault();" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="form-group" style="flex:1;min-width:220px;">
+            <label class="form-label" for="inpNewAdminPin">Ubah PIN Masuk Sekretaris (Minimal 4 Angka/Karakter)</label>
+            <input type="text" id="inpNewAdminPin" class="form-control" maxlength="20" placeholder="Masukkan PIN baru (bawaan: 123456)...">
+          </div>
+          <button type="submit" class="btn btn-primary">Simpan PIN Baru</button>
+        </form>
+      </div>
+
+      <div class="surface-card" style="margin-bottom:16px;">
+        <div class="card-title-bar">
+          <h3>Daftar Profil Akses Lokal</h3>
+          <button type="button" class="btn btn-soft btn-sm" id="btnAddUser">+ Tambah Profil</button>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr><th>Identitas / Email</th><th>Nama</th><th>Peran</th><th>ID Jamaah</th><th>Status</th><th>Aktivitas</th><th style="text-align:right;">Aksi</th></tr>
+            </thead>
+            <tbody id="tbodyUsers"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="surface-card">
+        <div class="card-title-bar">
+          <h3>Jejak Aktivitas Perangkat (Audit Log)</h3>
+          <input type="text" id="auditSearch" class="form-control" style="max-width:260px;" placeholder="Cari pengguna / aksi / detail...">
+        </div>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr><th>Waktu</th><th>Pengguna</th><th>Aksi &amp; Modul</th><th>Detail</th></tr>
+            </thead>
+            <tbody id="tbodyAudit"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       MOBILE BOTTOM NAVIGATION
+       ======================================================================== -->
+  <nav class="mobile-bottom-nav" aria-label="Navigasi Mobile">
+    <button type="button" class="mob-nav-btn active" data-module="database">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      <span>Database</span>
+    </button>
+    <button type="button" class="mob-nav-btn" data-module="absensi">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span>Absensi</span>
+    </button>
+    <button type="button" class="mob-nav-btn" data-module="pengurus">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5M5 17v-5h14v5"/></svg>
+      <span>Pengurus</span>
+    </button>
+    <button type="button" class="mob-nav-btn" id="mobBtnProfile">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Profil</span>
+    </button>
+    <button type="button" class="mob-nav-btn" id="mobBtnMore">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      <span>Lainnya</span>
+    </button>
+  </nav>
+
+  <!-- ========================================================================
+       MODAL 1: FORM TAMBAH / EDIT JAMAAH
+       ======================================================================== -->
+  <div class="modal-backdrop" id="modalJamaah">
+    <div class="modal-dialog">
+      <form id="formJamaah" onsubmit="event.preventDefault();">
+        <div class="modal-header">
+          <h3 id="modalJamaahTitle">Tambah Data Jamaah Baru</h3>
+          <button type="button" class="btn btn-outline btn-sm" data-closemodal="modalJamaah">Tutup</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="inpIsEdit" value="">
+          <div class="form-grid-3" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="inpIdJamaah">ID Jamaah (Otomatis)</label>
+              <input type="text" id="inpIdJamaah" class="form-control" readonly style="background:#f1f5f9;font-weight:700;">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpKelompok">Kelompok *</label>
+              <select id="inpKelompok" class="form-control" required>
+                <option value="Al Awwabin 1">Al Awwabin 1</option>
+                <option value="Al Awwabin 2">Al Awwabin 2</option>
+                <option value="Kencana 1">Kencana 1</option>
+                <option value="Kencana 2">Kencana 2</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpKodeKK">Kode KK (Contoh: AA1-KK01) *</label>
+              <input type="text" id="inpKodeKK" class="form-control" list="listKodeKK" placeholder="AA1-KK01" required>
+              <datalist id="listKodeKK"></datalist>
+            </div>
+          </div>
+
+          <div class="form-grid-3" style="margin-bottom:12px;">
+            <div class="form-group" style="grid-column: span 2;">
+              <label class="form-label" for="inpNama">Nama Lengkap Jamaah *</label>
+              <input type="text" id="inpNama" class="form-control" placeholder="Masukkan nama lengkap..." required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpStatusKK">Peran Dalam KK</label>
+              <select id="inpStatusKK" class="form-control">
+                <option value="Kepala Keluarga">Kepala Keluarga</option>
+                <option value="Anggota">Anggota Keluarga</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-3" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="inpJK">Jenis Kelamin *</label>
+              <select id="inpJK" class="form-control">
+                <option value="L">Laki-laki (L)</option>
+                <option value="P">Perempuan (P)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpTempatLahir">Tempat Lahir</label>
+              <input type="text" id="inpTempatLahir" class="form-control" placeholder="Bandung">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpTglLahir">Tanggal Lahir</label>
+              <input type="date" id="inpTglLahir" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-grid-3" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="inpUsia">Usia Saat Ini (Thn)</label>
+              <input type="number" id="inpUsia" class="form-control" min="0" max="120" placeholder="Otomatis dari Tgl Lahir">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpStatusNikah">Status Pernikahan</label>
+              <select id="inpStatusNikah" class="form-control">
+                <option value="Belum">Belum Menikah</option>
+                <option value="Menikah">Menikah</option>
+                <option value="Janda">Janda</option>
+                <option value="Duda">Duda</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpKategoriUsia">Kategori Usia</label>
+              <select id="inpKategoriUsia" class="form-control">
+                <option value="AUTO">-- Hitung Otomatis --</option>
+                <option value="BALITA">BALITA</option>
+                <option value="CABERAWIT">CABERAWIT</option>
+                <option value="REMAJA / MUDA-MUDI">REMAJA / MUDA-MUDI</option>
+                <option value="PRA NIKAH">PRA NIKAH</option>
+                <option value="USIA NIKAH">USIA NIKAH</option>
+                <option value="DEWASA">DEWASA</option>
+                <option value="LANSIA">LANSIA</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-3" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="inpPendidikan">Pendidikan</label>
+              <input type="text" id="inpPendidikan" class="form-control" placeholder="SD / SMP / SMA / S1 / S2">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpKelas">Kelas Sekolah</label>
+              <input type="text" id="inpKelas" class="form-control" placeholder="1-12 / SUDAH LULUS">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpLembaga">Nama Lembaga Pendidikan</label>
+              <input type="text" id="inpLembaga" class="form-control" placeholder="SEKOLAH UMUM / PSDI / UBM">
+            </div>
+          </div>
+
+          <div class="form-grid-3" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="inpDapukan">Dapukan Pengurus</label>
+              <input type="text" id="inpDapukan" class="form-control" placeholder="Kides / Wakides / Kipok / KU / Bospok">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpEkonomi">Kategori Ekonomi</label>
+              <select id="inpEkonomi" class="form-control">
+                <option value="">- Umum -</option>
+                <option value="Aghnia">Aghnia</option>
+                <option value="Dhuafa">Dhuafa</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpMubaligh">Kemubalighan (MT/MS)</label>
+              <select id="inpMubaligh" class="form-control">
+                <option value="">- Bukan Mubaligh -</option>
+                <option value="MS">MS (Mubaligh Setempat)</option>
+                <option value="MT">MT (Mubaligh Tugasan)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label" for="inpGoldar">Golongan Darah</label>
+              <select id="inpGoldar" class="form-control">
+                <option value="">- Belum Diketahui -</option>
+                <option value="O">O</option>
+                <option value="A">A</option>
+                <option value="A+">A+</option>
+                <option value="B">B</option>
+                <option value="AB">AB</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpNoHp">Nomor HP / WhatsApp</label>
+              <input type="text" id="inpNoHp" class="form-control" placeholder="0812xxxx / +62812xxxx">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inpStatusAktif">Status Keaktifan</label>
+              <select id="inpStatusAktif" class="form-control">
+                <option value="Aktif">Aktif</option>
+                <option value="Pindah Keluar">Pindah Keluar</option>
+                <option value="Wafat">Wafat</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-closemodal="modalJamaah">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitJamaah">Simpan Data Jamaah</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 2: FORM CATAT MUTASI MASUK & KELUAR
+       ======================================================================== -->
+  <div class="modal-backdrop" id="modalMutasi">
+    <div class="modal-dialog" style="max-width:600px;">
+      <form id="formMutasi" onsubmit="event.preventDefault();">
+        <div class="modal-header">
+          <h3 id="modalMutasiTitle">Catat Mutasi Jamaah</h3>
+          <button type="button" class="btn btn-outline btn-sm" data-closemodal="modalMutasi">Tutup</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid-2" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="mutJenis">Jenis Mutasi *</label>
+              <select id="mutJenis" class="form-control">
+                <option value="MASUK">JAMAAH MASUK (Lahir / Pindah Datang)</option>
+                <option value="KELUAR">JAMAAH KELUAR (Pindah / Wafat)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mutKategori">Kategori Mutasi *</label>
+              <select id="mutKategori" class="form-control">
+                <option value="Pindah Datang">Pindah Datang / Jamaah Baru</option>
+                <option value="Kelahiran">Kelahiran Baru</option>
+                <option value="Pindah Keluar">Pindah Domisili Keluar</option>
+                <option value="Wafat">Meninggal Dunia (Wafat)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="mutTanggal">Tanggal Mutasi *</label>
+              <input type="date" id="mutTanggal" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mutDicatatOleh">Dicatat Oleh</label>
+              <input type="text" id="mutDicatatOleh" class="form-control" value="Sekretaris Desa">
+            </div>
+          </div>
+
+          <!-- Box Pilih Jamaah Eksisting (Untuk Mutasi Keluar) -->
+          <div id="mutBoxExisting" style="display:none;margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="mutSelectJamaah">Pilih Jamaah yang Pindah Keluar / Wafat *</label>
+              <select id="mutSelectJamaah" class="form-control"></select>
+            </div>
+          </div>
+
+          <!-- Box Input Jamaah Baru Masuk -->
+          <div id="mutBoxNewJamaah">
+            <div class="form-grid-2" style="margin-bottom:12px;">
+              <div class="form-group">
+                <label class="form-label" for="mutNamaBaru">Nama Lengkap Jamaah Masuk *</label>
+                <input type="text" id="mutNamaBaru" class="form-control" placeholder="Nama lengkap jamaah baru / bayi...">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="mutKelompokBaru">Kelompok Tujuan *</label>
+                <select id="mutKelompokBaru" class="form-control">
+                  <option value="Al Awwabin 1">Al Awwabin 1</option>
+                  <option value="Al Awwabin 2">Al Awwabin 2</option>
+                  <option value="Kencana 1">Kencana 1</option>
+                  <option value="Kencana 2">Kencana 2</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-grid-3" style="margin-bottom:12px;">
+              <div class="form-group">
+                <label class="form-label" for="mutKodeKKBaru">Kode KK</label>
+                <input type="text" id="mutKodeKKBaru" class="form-control" list="listKodeKK" placeholder="AA1-KK24">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="mutJKBaru">Jenis Kelamin</label>
+                <select id="mutJKBaru" class="form-control">
+                  <option value="L">Laki-laki (L)</option>
+                  <option value="P">Perempuan (P)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="mutTglLahirBaru">Tanggal Lahir</label>
+                <input type="date" id="mutTglLahirBaru" class="form-control">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="mutKeterangan">Keterangan Lengkap (Asal / Alamat Tujuan / Catatan)</label>
+            <input type="text" id="mutKeterangan" class="form-control" placeholder="Contoh: Pindah datang dari kelompok luar / Kelahiran anak ke-3..." required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-closemodal="modalMutasi">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitMutasi">Simpan Catatan Mutasi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 3: DETAIL KARTU KELUARGA (KK) INTERAKTIF
+       ======================================================================== -->
+  <div class="modal-backdrop" id="modalDetailKK">
+    <div class="modal-dialog" style="max-width:780px;">
+      <div class="modal-header">
+        <h3 id="modalDetailKKTitle">Rincian Kartu Keluarga (KK)</h3>
+        <button type="button" class="btn btn-outline btn-sm" data-closemodal="modalDetailKK">Tutup</button>
+      </div>
+      <div class="modal-body" id="modalDetailKKBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-closemodal="modalDetailKK">Tutup</button>
+        <button type="button" class="btn btn-soft" id="btnAddMemberToThisKK" data-roles="admin">+ Tambah Anggota ke KK Ini</button>
+        <button type="button" class="btn btn-primary" id="btnPrintThisKK">Cetak PDF Kartu Keluarga Ini</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 4: IMPORT CSV / EXCEL DATABASE
+       ======================================================================== -->
+  <div class="modal-backdrop" id="modalImportCsv">
+    <div class="modal-dialog" style="max-width:650px;">
+      <form id="formImportCsv" onsubmit="event.preventDefault();">
+        <div class="modal-header">
+          <h3>Import Data Jamaah dari File CSV / Spreadsheet</h3>
+          <button type="button" class="btn btn-outline btn-sm" data-closemodal="modalImportCsv">Tutup</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:12px;">
+            Seluruh <strong>311 data jamaah (95 KK)</strong> dari Al Awwabin 1, Al Awwabin 2, Kencana 1, dan Kencana 2 <strong>sudah langsung terinput di sistem ini</strong>. Jika Anda ingin menambahkan data baru dari file CSV atau menempelkan baris CSV tambahan, silakan unggah atau tempelkan di bawah ini:
+          </p>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" for="inpCsvFile">Pilih File CSV (.csv)</label>
+            <input type="file" id="inpCsvFile" accept=".csv,.txt" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="inpCsvText">Atau Tempel (Paste) Baris CSV Langsung</label>
+            <textarea id="inpCsvText" rows="6" class="form-control" placeholder="Format: KK,NO.,KELOMPOK,NAMA,TEMPAT LAHIR,TGL LAHIR,USIA,JK,STATUS NIKAH,PENDIDIKAN,KELAS,LEMBAGA,DAPUKAN,EKONOMI,KATEGORI USIA,GOLDAR,MT/MS,NO HP"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-closemodal="modalImportCsv">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitImportCsv">Proses &amp; Import Data</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 5: PENGATURAN KOP SURAT & PEJABAT PENANDATANGAN PDF
+       ======================================================================== -->
+  <div class="modal-backdrop" id="modalSettings">
+    <div class="modal-dialog" style="max-width:560px;">
+      <form id="formSettings" onsubmit="event.preventDefault();">
+        <div class="modal-header">
+          <h3>Pengaturan Kop Surat &amp; Pejabat Desa</h3>
+          <button type="button" class="btn btn-outline btn-sm" data-closemodal="modalSettings">Tutup</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" for="setNamaDesa">Nama Desa / Organisasi (Kop Utama)</label>
+            <input type="text" id="setNamaDesa" class="form-control" required>
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" for="setSubjudulKop">Subjudul Kop Surat</label>
+            <input type="text" id="setSubjudulKop" class="form-control">
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" for="setAlamat">Alamat Sekretariat Desa</label>
+            <input type="text" id="setAlamat" class="form-control">
+          </div>
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label" for="setKotaTtd">Kota Tanda Tangan</label>
+              <input type="text" id="setKotaTtd" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="setNamaKides">Nama Ketua Desa (Kides)</label>
+              <input type="text" id="setNamaKides" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="setNamaSekretaris">Nama Sekretaris Desa</label>
+              <input type="text" id="setNamaSekretaris" class="form-control">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-closemodal="modalSettings">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitSettings">Simpan Pengaturan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  
+  <!-- ========================================================================
+       MODAL PROFIL PENGGUNA (otomatis muncul setelah login berhasil)
+       ======================================================================== -->
+  <div class="modal-backdrop" id="modalProfile">
+    <div class="modal-dialog" style="max-width:460px;">
+      <div class="modal-header">
+        <h3>Profil Pengguna</h3>
+        <button type="button" class="btn btn-outline btn-sm" data-closemodal="modalProfile">Tutup</button>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <span class="avatar avatar-xl" id="profAvatar" style="margin:0 auto 12px;"></span>
+        <div class="profile-name" id="profName" style="font-size:1.1rem;"></div>
+        <div class="profile-email" id="profEmail"></div>
+        <span class="role-badge" id="profRole"></span>
+        <div style="text-align:left;margin-top:18px;" class="biodata-grid" id="profDetails"></div>
+        <p style="font-size:0.74rem;color:var(--text-muted);margin-top:10px;text-align:left;">Data profil diambil dari akun Google Anda dan tidak disimpan di server selain nama &amp; email pada Hak Akses.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger-soft" id="btnLogoutFromProfile">Keluar (Logout)</button>
+        <button type="button" class="btn btn-primary" data-closemodal="modalProfile">Lanjut ke Aplikasi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PENGGUNA / HAK AKSES -->
+  <div class="modal-backdrop" id="modalUser">
+    <div class="modal-dialog" style="max-width:520px;">
+      <form id="formUser" onsubmit="event.preventDefault();">
+        <div class="modal-header">
+          <h3 id="modalUserTitle">Daftarkan Akun Google</h3>
+          <button type="button" class="btn btn-outline btn-sm" data-closemodal="modalUser">Tutup</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" for="usrEmail">Email Akun Google *</label>
+            <input type="email" id="usrEmail" class="form-control" maxlength="120" required placeholder="nama@gmail.com">
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" for="usrNama">Nama</label>
+            <input type="text" id="usrNama" class="form-control" maxlength="80">
+          </div>
+          <div class="form-grid-2" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="usrPeran">Peran *</label>
+              <select id="usrPeran" class="form-control">
+                <option value="anggota">Anggota (lihat keluarga sendiri)</option>
+                <option value="pengurus">Pengurus (lihat data, absensi, laporan)</option>
+                <option value="admin">Admin (akses penuh)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="usrStatus">Status Akses</label>
+              <select id="usrStatus" class="form-control">
+                <option value="Aktif">Aktif</option>
+                <option value="Nonaktif">Nonaktif (diblokir)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="usrIdJamaah">ID Jamaah (untuk Anggota, contoh JMH-202611-001)</label>
+            <input type="text" id="usrIdJamaah" class="form-control" maxlength="20" list="listIdJamaah" placeholder="JMH-YYYYMM-XXX">
+            <datalist id="listIdJamaah"></datalist>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-closemodal="modalUser">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitUser">Simpan Hak Akses</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: KEGIATAN -->
+  <div class="modal-backdrop" id="modalKegiatan">
+    <div class="modal-dialog" style="max-width:520px;">
+      <form id="formKegiatan" onsubmit="event.preventDefault();">
+        <div class="modal-header">
+          <h3 id="modalKegiatanTitle">Kegiatan Baru</h3>
+          <button type="button" class="btn btn-outline btn-sm" data-closemodal="modalKegiatan">Tutup</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="kgId" value="">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" for="kgNama">Nama Kegiatan *</label>
+            <input type="text" id="kgNama" class="form-control" maxlength="100" required placeholder="Contoh: Pengajian Rutin Pekanan">
+          </div>
+          <div class="form-grid-2" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="kgTanggal">Tanggal *</label>
+              <input type="date" id="kgTanggal" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="kgJenis">Jenis Kegiatan</label>
+              <select id="kgJenis" class="form-control">
+                <option>Pengajian Rutin</option>
+                <option>Musyawarah Desa</option>
+                <option>Rapat Pengurus</option>
+                <option>Kerja Bakti</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="kgSasaran">Sasaran Peserta</label>
+              <select id="kgSasaran" class="form-control">
+                <option value="Semua">Semua Kelompok</option>
+                <option value="Al Awwabin 1">Al Awwabin 1</option>
+                <option value="Al Awwabin 2">Al Awwabin 2</option>
+                <option value="Kencana 1">Kencana 1</option>
+                <option value="Kencana 2">Kencana 2</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="kgStatus">Status Presensi</label>
+              <select id="kgStatus" class="form-control">
+                <option value="Buka">Buka (anggota boleh presensi mandiri)</option>
+                <option value="Tutup">Tutup</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-closemodal="modalKegiatan">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitKegiatan">Simpan Kegiatan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PENGURUS -->
+  <div class="modal-backdrop" id="modalPengurus">
+    <div class="modal-dialog" style="max-width:620px;">
+      <form id="formPengurus" onsubmit="event.preventDefault();">
+        <div class="modal-header">
+          <h3 id="modalPengurusTitle">Tambah Pengurus</h3>
+          <button type="button" class="btn btn-outline btn-sm" data-closemodal="modalPengurus">Tutup</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="pgId" value="">
+          <div class="form-grid-2" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="pgJabatan">Jabatan / Dapukan *</label>
+              <input type="text" id="pgJabatan" class="form-control" maxlength="80" required placeholder="Contoh: Wakides">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pgUrutan">Urutan Tampil (1-999)</label>
+              <input type="number" id="pgUrutan" class="form-control" min="1" max="999" value="100">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" for="pgIdJamaah">Pilih dari Database Jamaah (ID Jamaah)</label>
+            <input type="text" id="pgIdJamaah" class="form-control" maxlength="20" list="listIdJamaah" placeholder="JMH-YYYYMM-XXX (nama & kelompok terisi otomatis)">
+          </div>
+          <div class="form-grid-2" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="pgNama">Nama (jika tidak dari Database)</label>
+              <input type="text" id="pgNama" class="form-control" maxlength="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pgEmail">Email Google (untuk menautkan laporan)</label>
+              <input type="email" id="pgEmail" class="form-control" maxlength="120" placeholder="nama@gmail.com">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" for="pgTupoksi">Tugas Pokok &amp; Fungsi (Tupoksi)</label>
+            <textarea id="pgTupoksi" class="form-control" rows="6" maxlength="1500" placeholder="Tuliskan tugas pokok dan fungsi jabatan ini..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="pgStatus">Status</label>
+            <select id="pgStatus" class="form-control">
+              <option value="Aktif">Aktif</option>
+              <option value="Nonaktif">Nonaktif</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-closemodal="modalPengurus">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitPengurus">Simpan Pengurus</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: LAPORAN (buat / ubah) -->
+  <div class="modal-backdrop" id="modalLaporan">
+    <div class="modal-dialog" style="max-width:640px;">
+      <form id="formLaporan" onsubmit="event.preventDefault();">
+        <div class="modal-header">
+          <h3 id="modalLaporanTitle">Buat Laporan Pengurus</h3>
+          <button type="button" class="btn btn-outline btn-sm" data-closemodal="modalLaporan">Tutup</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="lpId" value="">
+          <div class="form-group" id="lpPengurusBox" style="margin-bottom:12px;display:none;">
+            <label class="form-label" for="lpPengurus">Atas Nama Pengurus (Admin)</label>
+            <select id="lpPengurus" class="form-control"></select>
+          </div>
+          <div class="form-grid-2" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="lpPeriode">Periode (contoh: Oktober 2026)</label>
+              <input type="text" id="lpPeriode" class="form-control" maxlength="40">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="lpJudul">Judul Laporan *</label>
+              <input type="text" id="lpJudul" class="form-control" maxlength="120" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="lpIsi">Isi Laporan *</label>
+            <textarea id="lpIsi" class="form-control" rows="9" maxlength="4000" required placeholder="Uraikan kegiatan, capaian, kendala, dan rencana tindak lanjut..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-closemodal="modalLaporan">Batal</button>
+          <button type="button" class="btn btn-soft" id="btnSaveLaporanDraft">Simpan Draft</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitLaporan">Kirim Laporan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: LIHAT LAPORAN + TINJAUAN ADMIN -->
+  <div class="modal-backdrop" id="modalLaporanView">
+    <div class="modal-dialog" style="max-width:680px;">
+      <div class="modal-header">
+        <h3 id="lvTitle">Laporan</h3>
+        <button type="button" class="btn btn-outline btn-sm" data-closemodal="modalLaporanView">Tutup</button>
+      </div>
+      <div class="modal-body">
+        <div class="biodata-grid" id="lvMeta"></div>
+        <div class="tupoksi-text" id="lvIsi" style="border:1px solid var(--border-color);border-radius:8px;padding:12px;background:#f8fafc;color:var(--text-main);"></div>
+        <div id="lvReviewBox" style="display:none;margin-top:14px;">
+          <label class="form-label" for="lvCatatan">Catatan Admin</label>
+          <textarea id="lvCatatan" class="form-control" rows="3" maxlength="500" placeholder="Catatan tinjauan untuk pengurus..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-closemodal="modalLaporanView">Tutup</button>
+        <button type="button" class="btn btn-soft" id="btnPrintLaporan" data-roles="admin,pengurus">Cetak PDF</button>
+        <button type="button" class="btn btn-danger-soft" id="btnLvRevisi" style="display:none;">Minta Revisi</button>
+        <button type="button" class="btn btn-primary" id="btnLvTinjau" style="display:none;">Tandai Ditinjau</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Area cetak generik (rekap absensi, struktur, laporan) -->
+  <div id="genericPrint"></div>
+
+  
+  <!-- ========================================================================
+       MODAL PANDUAN INSTALASI PWA (PASANG APLIKASI DI HP & DESKTOP)
+       ======================================================================== -->
+  <div class="modal-backdrop" id="modalPwaInstall">
+    <div class="modal-dialog" style="max-width:540px;">
+      <div class="modal-header">
+        <h3>📲 Pasang Aplikasi di HP (PWA)</h3>
+        <button type="button" class="btn btn-outline btn-sm" data-closemodal="modalPwaInstall">Tutup</button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="width:58px;height:58px;border-radius:14px;background:#0f766e;color:#fff;display:inline-flex;align-items:center;justify-content:center;margin-bottom:8px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h4 style="font-size:1.05rem;font-weight:800;">SIDA-JAMAAH DESA</h4>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Pasang aplikasi di layar utama HP Anda agar bisa dibuka cepat satu ketukan tanpa repot mengetik link lagi.</p>
+        </div>
+
+        <div id="pwaNativeInstallBox" style="display:none;margin-bottom:16px;text-align:center;">
+          <button type="button" class="btn btn-primary" id="btnDoNativeInstall" style="width:100%;padding:12px;font-size:0.92rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Klik untuk Pasang Sekarang di HP Anda
+          </button>
+          <div style="height:1px;background:var(--border-color);margin:16px 0;"></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <!-- Panduan Android -->
+          <div style="background:var(--bg-subtle);border:1px solid var(--border-color);border-radius:10px;padding:12px 14px;">
+            <div style="font-weight:700;font-size:0.85rem;color:var(--primary);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+              <span>🤖</span> Untuk HP Android (Google Chrome)
+            </div>
+            <ol style="margin-left:20px;font-size:0.8rem;line-height:1.55;color:var(--text-secondary);">
+              <li>Buka link aplikasi ini di browser <strong>Google Chrome</strong> HP Anda.</li>
+              <li>Ketuk ikon <strong>titik tiga (⋮)</strong> di pojok kanan atas browser.</li>
+              <li>Pilih menu <strong>"Instal aplikasi"</strong> atau <strong>"Tambahkan ke Layar Utama"</strong> (<em>Add to Home screen</em>).</li>
+              <li>Ketuk <strong>Instal / Tambah</strong>. Ikon aplikasi langsung muncul di layar HP Anda!</li>
+            </ol>
+          </div>
+
+          <!-- Panduan iPhone -->
+          <div style="background:var(--bg-subtle);border:1px solid var(--border-color);border-radius:10px;padding:12px 14px;">
+            <div style="font-weight:700;font-size:0.85rem;color:#2563eb;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+              <span>🍎</span> Untuk iPhone / iPad (Safari)
+            </div>
+            <ol style="margin-left:20px;font-size:0.8rem;line-height:1.55;color:var(--text-secondary);">
+              <li>Buka link aplikasi ini di browser <strong>Safari</strong>.</li>
+              <li>Ketuk tombol <strong>Bagikan</strong> (ikon kotak dengan tanda panah ke atas di bilah bawah).</li>
+              <li>Gulir ke bawah, lalu pilih <strong>"Tambahkan ke Layar Utama"</strong> (<em>Add to Home Screen</em>).</li>
+              <li>Ketuk <strong>Tambah</strong> di pojok kanan atas.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-closemodal="modalPwaInstall">Mengerti</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <!-- ========================================================================
+       JAVASCRIPT APPLICATION ENGINE (ZettBOT v4.1 Standards)
+       ======================================================================== -->
+  <!-- ========================================================================
+       STANDALONE LOCAL DATABASE & APPLICATION SCRIPTS (REV 3.0)
+       ======================================================================== -->
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./sw.js').catch(function() {});
+      });
+    }
+  </script>
+</body>
+</html>
